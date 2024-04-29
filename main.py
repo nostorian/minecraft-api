@@ -30,7 +30,11 @@ async def authenticate(api_key: str = Header(...)):
         raise HTTPException(status_code=401, detail="Internal Server Error")
     return True
 
-    
+@app.get("/")
+async def home():
+    return {"message": "Welcome to the Minecraft chatbot API. Please use the /chat route to chat with the bot."}
+
+
 @app.post("/chat")
 async def chat_to_bot(msg: Message, authorized: bool = Depends(authenticate)):
     proxy = None  # Add your proxy configuration if needed
