@@ -3,35 +3,9 @@ from pydantic import BaseModel
 from g4f.client import Client
 from g4f.Provider import Aichatos, RetryProvider
 import base64, asyncpg
-from starlette.requests import Request
-from starlette.responses import JSONResponse
 
 app = FastAPI()
 postgres_url = "postgres://nostorian:AvELFkB3edVkYEa0LuXSGpU6BOnBfJvS@dpg-conn9pgcmk4c73a8rhg0-a.oregon-postgres.render.com/mcdb_mt6m"
-
-
-class InternalServerException(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-async def custom_exception_handler(request: Request, exc: InternalServerException) -> JSONResponse:
-    return JSONResponse(
-        status_code=500,
-        content={"response": exc.message}
-    )
-
-class UnAuthorizedException(Exception):
-    def __init__(self, message: str):
-        self.message = message
-
-async def unauthorized_exception_handler(request: Request, exc: UnAuthorizedException) -> JSONResponse:
-    return JSONResponse(
-        status_code=401,
-        content={"response": exc.message},
-    )
-
-app.add_exception_handler(InternalServerException, custom_exception_handler)
-app.add_exception_handler(UnAuthorizedException, unauthorized_exception_handler)
 
 class Message(BaseModel):
     msg: str
@@ -52,11 +26,8 @@ async def authenticate(api_key: str = Header(...)):
         if not e:
             raise HTTPException(status_code=401, detail="Unauthorized")
     except Exception as e:
-        if isinstance(e, HTTPException):
-            raise UnAuthorizedException("Unauthorized")
-        else:
-            print(e)
-            raise InternalServerException("An error occurred while authenticating. Please try again later.")
+        print(e)
+        raise HTTPException(status_code=401, detail="Internal Server Error")
     return True
 
 
@@ -80,11 +51,11 @@ async def chat_to_bot(msg: Message, authorized: bool = Depends(authenticate)):
     try:
         response = client.chat.completions.create(model='gpt-3.5-turbo', messages=messages, stream=True)
         for message in response:
-            return {"response": message.choices[0].delta.content or ""}
+            return {"detail": message.choices[0].delta.content or ""}
     except Exception as e:
         print(e)
-        raise InternalServerException("Unable to process the request. Please try again later.")
+        raise HTTPException(status_code=500, detail="Unable to chat with bot. Please try again later.")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app, host="0.0.0.0")
