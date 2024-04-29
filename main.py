@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException, Depends, Header
 from pydantic import BaseModel
-from g4f.client import Client
+from g4f.client import AsyncClient
 from g4f.Provider import Aichatos, RetryProvider
-import base64, asyncpg
+import asyncpg
 
 app = FastAPI()
 postgres_url = "postgres://nostorian:AvELFkB3edVkYEa0LuXSGpU6BOnBfJvS@dpg-conn9pgcmk4c73a8rhg0-a.oregon-postgres.render.com/mcdb_mt6m"
@@ -42,9 +42,7 @@ async def home():
     
 @app.post("/chat")
 async def chat_to_bot(msg: Message, authorized: bool = Depends(authenticate)):
-    proxy = None  # Add your proxy configuration if needed
-    client = Client(
-        proxies=proxy,
+    client = AsyncClient(
         provider=RetryProvider([Aichatos], single_provider_retry=True, max_retries=5)
     )
     messages = [
@@ -53,8 +51,11 @@ async def chat_to_bot(msg: Message, authorized: bool = Depends(authenticate)):
     ]
     try:
         response = client.chat.completions.create(model='gpt-3.5-turbo', messages=messages, stream=True)
-        for message in response:
-            return {"detail": message.choices[0].delta.content or ""}
+        async for chunk in response:
+            if chunk.choices[0].delta.content:
+                return {"response": chunk.choices[0].delta.content} or {"response": "I'm sorry, I don't understand. Please try rephrasing your question."}
+            else:
+                return {"response": "Apologies, I'm currently experiencing technical difficulties. Please try again later."}
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request. Please try again later.")
