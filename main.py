@@ -26,8 +26,11 @@ async def authenticate(api_key: str = Header(...)):
         if not e:
             raise HTTPException(status_code=401, detail="Unauthorized")
     except Exception as e:
-        print(e)
-        raise HTTPException(status_code=401, detail="Internal Server Error")
+        if isinstance(e, HTTPException):
+            raise e
+        else:
+            print(e)
+            raise HTTPException(status_code=401, detail="An error occurred while authenticating. Please try again later.")
     return True
 
 
@@ -54,7 +57,7 @@ async def chat_to_bot(msg: Message, authorized: bool = Depends(authenticate)):
             return {"detail": message.choices[0].delta.content or ""}
     except Exception as e:
         print(e)
-        raise HTTPException(status_code=500, detail="Unable to chat with bot. Please try again later.")
+        raise HTTPException(status_code=500, detail="An error occurred while processing the request. Please try again later.")
 
 if __name__ == "__main__":
     import uvicorn
