@@ -53,9 +53,9 @@ async def chat_to_bot(msg: Message, authorized: bool = Depends(authenticate)):
         response = client.chat.completions.create(model='gpt-3.5-turbo', messages=messages, stream=True)
         async for chunk in response:
             if chunk.choices[0].delta.content:
-                return {"response": chunk.choices[0].delta.content} or {"response": "I'm sorry, I don't understand. Please try rephrasing your question."}
+                return {"detail": chunk.choices[0].delta.content} or {"detail": "I'm sorry, I don't understand. Please try rephrasing your question."}
             else:
-                return {"response": "Apologies, I'm currently experiencing technical difficulties. Please try again later."}
+                return {"detail": "Apologies, I'm currently experiencing technical difficulties. Please try again later."}
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request. Please try again later.")
