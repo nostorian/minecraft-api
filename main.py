@@ -62,4 +62,4 @@ async def chat_to_bot(msg: Message, authorized: bool = Depends(authenticate)):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0")
+    uvicorn.run(app, host="0.0.0.0", loop='asyncio')
