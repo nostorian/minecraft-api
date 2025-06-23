@@ -37,7 +37,7 @@ async def authenticate(api_key: str = Header(...)):
 # if visitor comes on the main route tell them to use /chat
 @app.get("/")
 async def home():
-    return {"message": "Welcome to nostorian_'s Minecraft chatbot API! Check out https://github.com/fw-real for more projects. To chat with the bot, use the /chat endpoint."}
+    return {"message": "Welcome to nostorian_'s Minecraft chatbot API! Check out https://github.com/nostorian for more projects. To chat with the bot, use the /chat endpoint."}
 
     
 @app.post("/chat")
