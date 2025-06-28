@@ -5,7 +5,7 @@ from g4f.Provider import Aichatos, RetryProvider
 import asyncpg
 
 app = FastAPI()
-postgres_url = "postgres://nostorian:AvELFkB3edVkYEa0LuXSGpU6BOnBfJvS@dpg-conn9pgcmk4c73a8rhg0-a.oregon-postgres.render.com/mcdb_mt6m"
+postgres_url = ""
 
 class Message(BaseModel):
     msg: str
